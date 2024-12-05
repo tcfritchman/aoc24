@@ -48,19 +48,19 @@ public class Day03 {
         int total = 0;
         boolean enabled = true;
         while (matcher.find()) {
-            String mul = matcher.group("mul");
-            String enable = matcher.group("enable");
-            String disable = matcher.group("disable");
+            boolean mul = nonNull(matcher.group("mul"));
+            boolean enable = nonNull(matcher.group("enable"));
+            boolean disable = nonNull(matcher.group("disable"));
 
-            if (nonNull(mul)) {
+            if (mul) {
                 int a = Integer.parseInt(matcher.group("arg1"));
                 int b = Integer.parseInt(matcher.group("arg2"));
                 if (enabled) {
                     total += (a * b);
                 }
-            } else if (nonNull(enable)) {
+            } else if (enable) {
                 enabled = true;
-            } else if (nonNull(disable)) {
+            } else if (disable) {
                 enabled = false;
             }
         }
