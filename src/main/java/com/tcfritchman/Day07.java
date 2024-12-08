@@ -1,9 +1,6 @@
 package com.tcfritchman;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Day07 {
 
@@ -932,16 +929,30 @@ public class Day07 {
         long evaluate();
     }
 
-    record BinaryExpression(Expression left, Expression right, Operator operator) implements Expression {
+    static final class BinaryExpression implements Expression {
+        private final Expression left;
+        private final Expression right;
+        private final Operator operator;
+        private Long cachedValue;
+
+        BinaryExpression(Expression left, Expression right, Operator operator) {
+            this.left = left;
+            this.right = right;
+            this.operator = operator;
+        }
+
         @Override
         public long evaluate() {
-            if (operator.equals(Operator.MULTIPLY)) {
-                return left.evaluate() * right.evaluate();
-            } else if (operator.equals(Operator.ADD)) {
-                return left.evaluate() + right.evaluate();
-            } else {
-                return Long.parseLong(Long.toString(left.evaluate()) + right.evaluate());
+            if (Objects.isNull(cachedValue)) {
+                if (operator.equals(Operator.MULTIPLY)) {
+                    cachedValue = left.evaluate() * right.evaluate();
+                } else if (operator.equals(Operator.ADD)) {
+                    cachedValue = left.evaluate() + right.evaluate();
+                } else {
+                    cachedValue = Long.parseLong(Long.toString(left.evaluate()) + right.evaluate());
+                }
             }
+            return cachedValue;
         }
     }
 
