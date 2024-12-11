@@ -2,15 +2,15 @@ package com.tcfritchman.common;
 
 import java.util.Objects;
 
-public record Position(long row, long col) {
+public record Position(int row, int col) {
 
     @Override
-    public long row() {
+    public int row() {
         return row;
     }
 
     @Override
-    public long col() {
+    public int col() {
         return col;
     }
 
