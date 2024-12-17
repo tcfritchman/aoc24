@@ -606,5 +606,6 @@ public class Day14 {
         }
     }
 
-    private record Robot(int dx, int dy, int vx, int vy) {}
+    private record Robot(int dx, int dy, int vx, int vy) {
+    }
 }
