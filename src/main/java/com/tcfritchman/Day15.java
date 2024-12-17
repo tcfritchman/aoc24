@@ -108,12 +108,12 @@ public class Day15 {
     public static void main(String[] args) {
         System.out.println("Part 1 --- example: " + part1(exampleInput));
         System.out.println("Part 1 --- real: " + part1(realInput));
-//        System.out.println("Part 2 --- example: " + part2(exampleInput));
-//        System.out.println("Part 2 --- real: " + part2(realInput));
+        System.out.println("Part 2 --- example: " + part2(exampleInput));
+        System.out.println("Part 2 --- real: " + part2(realInput));
     }
 
     private static Object part1(String input) {
-        Simulation simulation = new Simulation(input);
+        Simulation simulation = new Simulation(input, Version.V1);
         simulation.run();
         return simulation.getBoxes().stream()
                 .mapToInt(Box::getGpsCoordinate)
@@ -121,7 +121,11 @@ public class Day15 {
     }
 
     private static Object part2(String input) {
-        return null;
+        Simulation simulation = new Simulation(input, Version.V2);
+        simulation.run();
+        return simulation.getBoxes().stream()
+                .mapToInt(Box::getGpsCoordinate)
+                .sum();
     }
 
     private static class Simulation {
@@ -131,9 +135,13 @@ public class Day15 {
 
         private List<Box> boxes;
 
-        public Simulation(String input) {
+        public Simulation(String input, Version version) {
             String[] inputParts = input.split("\n\n");
-            parseGrid(inputParts[0]);
+            if (version == Version.V2) {
+                parseGrid2(inputParts[0]);
+            } else {
+                parseGrid(inputParts[0]);
+            }
             parseMoves(inputParts[1]);
         }
 
@@ -173,6 +181,42 @@ public class Day15 {
             }
         }
 
+        private void parseGrid2(String input) {
+            String[] lines = input.split("\n");
+            int size = lines.length;
+            grid = new Entity[size][size * 2];
+            boxes = new ArrayList<>();
+            for (int row = 0; row < size; row++) {
+                for (int col = 0; col < size; col++) {
+                    char c = lines[row].charAt(col);
+                    Entity entity1;
+                    Entity entity2;
+                    if (c == '@') {
+                        robot = new Robot(new Vec2(2 * col, row), grid);
+                        entity1 = robot;
+                        entity2 = null;
+                    } else if (c == 'O') {
+                        DoubleSidedBox doubleSidedBoxL = new DoubleSidedBox(new Vec2(2 * col, row), grid);
+                        DoubleSidedBox doubleSidedBoxR = new DoubleSidedBox(new Vec2(2 * col + 1, row), grid);
+                        doubleSidedBoxR.setPartner(doubleSidedBoxL);
+                        doubleSidedBoxL.setPartner(doubleSidedBoxR);
+                        entity1 = doubleSidedBoxL;
+                        entity2 = doubleSidedBoxR;
+                        boxes.add(doubleSidedBoxL);
+                    } else if (c == '#') {
+                        entity1 = new Wall(new Vec2(2 * col, row), grid);
+                        entity2 = new Wall(new Vec2(2 * col + 1, row), grid);
+                    } else {
+                        entity1 = null;
+                        entity2 = null;
+                    }
+                    grid[row][col * 2] = entity1;
+                    grid[row][col * 2 + 1] = entity2;
+                }
+            }
+
+        }
+
         private void parseMoves(String input) {
             moves = new ArrayList<>();
             for (int i = 0; i < input.length(); i++) {
@@ -187,6 +231,39 @@ public class Day15 {
                     moves.add(new Vec2(0, -1));
                 }
             }
+        }
+
+        private void print(Vec2 direction) {
+            if (direction.equals(new Vec2(1, 0))) {
+                System.out.println('>');
+            }
+            if (direction.equals(new Vec2(-1, 0))) {
+                System.out.println('<');
+            }
+            if (direction.equals(new Vec2(0, 1))) {
+                System.out.println('v');
+            }
+            if (direction.equals(new Vec2(0, -1))) {
+                System.out.println('^');
+            }
+            for (int row = 0; row < grid.length; row++) {
+                for (int col = 0; col < grid[row].length; col++) {
+                    Entity entity = grid[row][col];
+                    if (entity instanceof Wall) {
+                        System.out.print('#');
+                    } else if (entity instanceof Robot) {
+                        System.out.print('@');
+                    } else if (entity instanceof DoubleSidedBox) {
+                        System.out.print('D');
+                    } else if (entity instanceof Box) {
+                        System.out.print('O');
+                    } else {
+                        System.out.print('.');
+                    }
+                }
+                System.out.println();
+            }
+            System.out.println();
         }
     }
 
@@ -246,22 +323,50 @@ public class Day15 {
         }
     }
 
-//    private static class DoubleSidedBox extends Box {
-//        Side side;
-//        DoubleSidedBox partner;
-//        boolean hasMoved;
-//
-//        public DoubleSidedBox(Vec2 position, Entity[][] grid, Side side) {
-//            super(position, grid);
-//            this.side = side;
-//        }
-//
-//        @Override
-//        boolean move(Vec2 direction) {
-//            boolean super.move(direction);
-//
-//        }
-//    }
+    private static class DoubleSidedBox extends Box {
+        DoubleSidedBox partner;
+        boolean visited;
+
+        public DoubleSidedBox(Vec2 position, Entity[][] grid) {
+            super(position, grid);
+        }
+
+        public void setPartner(DoubleSidedBox partner) {
+            this.partner = partner;
+        }
+
+        @Override
+        boolean canMove(Vec2 direction) {
+            if (direction.y() == 0) {
+                // horizontal movement
+                return super.canMove(direction);
+            } else {
+                if (visited) {
+                    return true;
+                } else {
+                    visited = true;
+                    boolean canMove = super.canMove(direction) && partner.canMove(direction);
+                    visited = false;
+                    return canMove;
+                }
+            }
+        }
+
+        @Override
+        public void move(Vec2 direction) {
+            if (direction.y() == 0) {
+                // horizontal movement
+                super.move(direction);
+            } else {
+                if (!visited) {
+                    visited = true;
+                    super.move(direction);
+                    partner.move(direction);
+                    visited = false;
+                }
+            }
+        }
+    }
 
     private static class Wall extends Entity {
 
@@ -275,5 +380,5 @@ public class Day15 {
         }
     }
 
-    enum Side {LEFT, RIGHT}
+    enum Version {V1, V2}
 }
