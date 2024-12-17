@@ -1422,17 +1422,16 @@ public class Day05 {
                 .sum();
     }
 
-    private static boolean isValid(List<Integer> l, Map<Integer, Set<Integer>> map) {
-        List<Integer> copy = new ArrayList<>(l);
-        while (copy.size() > 1) {
-            Integer n = copy.removeFirst();
-            if (!map.containsKey(n) || !map.get(n).containsAll(copy)) return false;
-        }
-        return true;
-    }
-
     private static Object part2(String input) {
-        return null;
+        var map = createMap(input.split("\n\n")[0]);
+        var list = createList(input.split("\n\n")[1]);
+
+        return list.stream()
+                .filter(l -> !isValid(l, map))
+                .map(l -> fixOrdering(l, map))
+                .mapToInt(Day05::findMiddle)
+                .sum();
+
     }
 
     private static Map<Integer, Set<Integer>> createMap(String input) {
@@ -1460,7 +1459,26 @@ public class Day05 {
                 .toList();
     }
 
+    private static boolean isValid(List<Integer> l, Map<Integer, Set<Integer>> map) {
+        List<Integer> copy = new ArrayList<>(l);
+        while (copy.size() > 1) {
+            Integer n = copy.removeFirst();
+            if (!map.containsKey(n) || !map.get(n).containsAll(copy)) return false;
+        }
+        return true;
+    }
+
     private static int findMiddle(List<Integer> l) {
         return l.get(l.size() / 2);
+    }
+
+    private static List<Integer> fixOrdering(List<Integer> l, Map<Integer, Set<Integer>> map) {
+//        List<Integer> copy = new ArrayList<>(l);
+//        for (int i = 0; i < copy.size(); i++) {
+//            for (int j = i; j < copy.size(); j++) {
+//
+//            }
+//        }
+        return null;
     }
 }

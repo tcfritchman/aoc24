@@ -1,6 +1,6 @@
 package com.tcfritchman;
 
-public class Day14 {
+public class Day15 {
 
     static String exampleInput = """
             """;

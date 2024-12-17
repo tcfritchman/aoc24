@@ -2,10 +2,7 @@ package com.tcfritchman;
 
 import com.tcfritchman.common.Position;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Day12 {
 
@@ -168,15 +165,13 @@ public class Day12 {
     public static void main(String[] args) {
         System.out.println("Part 1 --- example: " + part1(exampleInput));
         System.out.println("Part 1 --- real: " + part1(realInput));
-//        System.out.println("Part 2 --- example: " + part2(exampleInput));
-//        System.out.println("Part 2 --- real: " + part2(realInput));
+        System.out.println("Part 2 --- example: " + part2(exampleInput));
+        System.out.println("Part 2 --- real: " + part2(realInput));
     }
 
     private static Object part1(String input) {
         var grid = parseInput(input);
         List<Region> regions = getRegions(grid);
-
-        System.out.println(regions);
 
         return regions.stream()
                 .mapToInt(region -> region.getArea() * region.getPerimeter())
@@ -184,7 +179,12 @@ public class Day12 {
     }
 
     private static Object part2(String input) {
-        return null;
+        var grid = parseInput(input);
+        List<Region> regions = getRegions(grid);
+
+        return regions.stream()
+                .mapToInt(region -> region.getArea() * region.getSides())
+                .sum();
     }
 
     private static char[][] parseInput(String input) {
@@ -267,6 +267,61 @@ public class Day12 {
                         return sides;
                     })
                     .sum();
+        }
+
+        public int getSides() {
+            List<Position> leftEdgePositions = positions.stream()
+                    .filter(pos -> !positions.contains(new Position(pos.row(), pos.col() + 1)))
+                    .sorted(Comparator.comparingInt(Position::col).thenComparingInt(Position::row))
+                    .toList();
+
+            List<Position> topEdgePositions = positions.stream()
+                    .filter(pos -> !positions.contains(new Position(pos.row() - 1, pos.col())))
+                    .sorted(Comparator.comparingInt(Position::row).thenComparingInt(Position::col))
+                    .toList();
+
+            List<Position> rightEdgePositions = positions.stream()
+                    .filter(pos -> !positions.contains(new Position(pos.row(), pos.col() - 1)))
+                    .sorted(Comparator.comparingInt(Position::col).thenComparingInt(Position::row))
+                    .toList();
+
+            List<Position> bottomEdgePositions = positions.stream()
+                    .filter(pos -> !positions.contains(new Position(pos.row() + 1, pos.col())))
+                    .sorted(Comparator.comparingInt(Position::row).thenComparingInt(Position::col))
+                    .toList();
+
+            int leftEdges = countVerticalEdges(leftEdgePositions);
+            int topEdges = countHorizontalEdges(topEdgePositions);
+            int rightEdges = countVerticalEdges(rightEdgePositions);
+            int bottomEdges = countHorizontalEdges(bottomEdgePositions);
+
+            return leftEdges + topEdges + rightEdges + bottomEdges;
+        }
+
+        private static int countVerticalEdges(List<Position> verticalPositions) {
+            int verticalEdges = 1;
+            for (int i = 1; i < verticalPositions.size(); i++) {
+                Position prev = verticalPositions.get(i - 1);
+                Position curr = verticalPositions.get(i);
+                if (prev.col() != curr.col() || curr.row() - prev.row() > 1) {
+                    // start of a new edge
+                    verticalEdges++;
+                }
+            }
+            return verticalEdges;
+        }
+
+        private static int countHorizontalEdges(List<Position> horizontalPositions) {
+            int horizontalEdges = 1;
+            for (int i = 1; i < horizontalPositions.size(); i++) {
+                Position prev = horizontalPositions.get(i - 1);
+                Position curr = horizontalPositions.get(i);
+                if (prev.row() != curr.row() || curr.col() - prev.col() > 1) {
+                    // start of a new edge
+                    horizontalEdges++;
+                }
+            }
+            return horizontalEdges;
         }
     }
 }
