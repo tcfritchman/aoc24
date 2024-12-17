@@ -138,7 +138,9 @@ public class Day15 {
         }
 
         public void run() {
-            moves.forEach(move -> robot.move(move));
+            moves.forEach(move -> {
+                if (robot.canMove(move)) robot.move(move);
+            });
         }
 
         public List<Box> getBoxes() {
@@ -197,7 +199,19 @@ public class Day15 {
             this.grid = grid;
         }
 
-        abstract boolean move(Vec2 direction);
+        abstract boolean canMove(Vec2 direction);
+
+        public void move(Vec2 direction) {
+            Vec2 currPosition = this.getPosition();
+            Vec2 nextPosition = currPosition.add(direction);
+            Entity next = grid[nextPosition.y()][nextPosition.x()];
+            if (next != null) {
+                next.move(direction);
+            }
+            grid[currPosition.y()][currPosition.x()] = null;
+            grid[nextPosition.y()][nextPosition.x()] = this;
+            setPosition(nextPosition);
+        }
 
         public Vec2 getPosition() {
             return position;
@@ -220,25 +234,34 @@ public class Day15 {
             super(position, grid);
         }
 
-        @Override
-        boolean move(Vec2 direction) {
+        boolean canMove(Vec2 direction) {
             Vec2 currPosition = this.getPosition();
             Vec2 nextPosition = currPosition.add(direction);
             Entity next = grid[nextPosition.y()][nextPosition.x()];
-            if (next == null || next.move(direction)) {
-                grid[currPosition.y()][currPosition.x()] = null;
-                grid[nextPosition.y()][nextPosition.x()] = this;
-                setPosition(nextPosition);
-                return true;
-            } else {
-                return false;
-            }
+            return next == null || next.canMove(direction);
         }
 
         int getGpsCoordinate() {
             return (100 * position.y()) + position.x();
         }
     }
+
+//    private static class DoubleSidedBox extends Box {
+//        Side side;
+//        DoubleSidedBox partner;
+//        boolean hasMoved;
+//
+//        public DoubleSidedBox(Vec2 position, Entity[][] grid, Side side) {
+//            super(position, grid);
+//            this.side = side;
+//        }
+//
+//        @Override
+//        boolean move(Vec2 direction) {
+//            boolean super.move(direction);
+//
+//        }
+//    }
 
     private static class Wall extends Entity {
 
@@ -247,9 +270,10 @@ public class Day15 {
         }
 
         @Override
-        boolean move(Vec2 direction) {
-            // Walls cannot move
-            return false;
+        boolean canMove(Vec2 direction) {
+            return false; // Walls can't move
         }
     }
+
+    enum Side {LEFT, RIGHT}
 }
