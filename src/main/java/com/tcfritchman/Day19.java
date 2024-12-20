@@ -1,9 +1,6 @@
 package com.tcfritchman;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Day19 {
@@ -429,8 +426,8 @@ public class Day19 {
     public static void main(String[] args) {
         System.out.println("Part 1 --- example: " + part1(exampleInput));
         System.out.println("Part 1 --- real: " + part1(realInput));
-//        System.out.println("Part 2 --- example: " + part2(exampleInput));
-//        System.out.println("Part 2 --- real: " + part2(realInput));
+        System.out.println("Part 2 --- example: " + part2(exampleInput));
+        System.out.println("Part 2 --- real: " + part2(realInput));
     }
 
     private static Object part1(String input) {
@@ -439,36 +436,39 @@ public class Day19 {
         List<String> designs = Arrays.stream(inputParts[1].split("\n")).toList();
 
         return designs.stream()
-                .filter(design -> isDesignPossible(design, 0, patterns, new HashSet<>()))
-                .peek(System.out::println)
+                .filter(design -> countDesignsPossible(design, 0, patterns, new HashMap<>()) > 0)
                 .count();
     }
 
-    private static boolean isDesignPossible(final String design, final int start, final Set<String> patterns, Set<Integer> mem) {
-        if (start == design.length()) return true;
-        if (mem.contains(start)) return false;
+    private static Object part2(String input) {
+        String[] inputParts = input.split("\n\n");
+        Set<String> patterns = Arrays.stream(inputParts[0].split(", ")).collect(Collectors.toSet());
+        List<String> designs = Arrays.stream(inputParts[1].split("\n")).toList();
+
+        return designs.stream()
+                .mapToLong(design -> countDesignsPossible(design, 0, patterns, new HashMap<>()))
+                .sum();
+    }
+
+    private static long countDesignsPossible(final String design, final int start, final Set<String> patterns, Map<Integer, Long> mem) {
+        if (start == design.length()) return 1;
+
+        if (mem.containsKey(start)) {
+            return mem.get(start);
+        }
 
         int end = design.length();
 
-        // Greedily find the biggest matches first
+        long possibleDesigns = 0;
         while (end > start) {
             String curr = design.substring(start, end);
-            if (patterns.contains(curr) && isDesignPossible(design, end, patterns, mem)) {
-                // return early as soon as a possible combination is found
-                return true;
+            if (patterns.contains(curr)) {
+                possibleDesigns += countDesignsPossible(design, end, patterns, mem);
             }
             end--;
         }
 
-        mem.add(start);
-        // No pattern found
-        return false;
-    }
-
-    private static Object part2(String input) {
-        return null;
-    }
-
-    private record Mem(int position, String str) {
+        mem.put(start, possibleDesigns);
+        return possibleDesigns;
     }
 }
