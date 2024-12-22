@@ -1,6 +1,9 @@
 package com.tcfritchman;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Day17 {
 
@@ -12,22 +15,54 @@ public class Day17 {
             Program: 0,1,5,4,3,0
             """;
 
+    static String example2 = """
+            Register A: 2024
+            Register B: 0
+            Register C: 0
+            
+            Program: 0,3,5,4,3,0
+            """;
+
     static String realInput = """
+            Register A: 21539243
+            Register B: 0
+            Register C: 0
+            
+            Program: 2,4,1,3,7,5,1,5,0,3,4,1,5,5,3,0
             """;
 
     public static void main(String[] args) {
         System.out.println("Part 1 --- example: " + part1(exampleInput));
-//        System.out.println("Part 1 --- real: " + part1(realInput));
-//        System.out.println("Part 2 --- example: " + part2(exampleInput));
+        System.out.println("Part 1 --- real: " + part1(realInput));
+        System.out.println("Part 2 --- example: " + part2(example2));
 //        System.out.println("Part 2 --- real: " + part2(realInput));
     }
 
     private static Object part1(String input) {
-        return null;
+        Computer computer = new Computer(input);
+
+        while(!computer.isHalted()) {
+            computer.run();
+        }
+
+        return computer.output.stream().map(Object::toString).collect(Collectors.joining(","));
     }
 
     private static Object part2(String input) {
-        return null;
+        List<Integer> expectedOutput = Arrays.stream(input.split("\n")[4].split(": ")[1].split(",")).map(Integer::parseInt).toList();
+        List<Integer> actualOutput = List.of();
+        int initialRegisterA = -1;
+        while (!actualOutput.equals(expectedOutput)) {
+            initialRegisterA++;
+//            System.out.println(initialRegisterA);
+            Computer computer = new Computer(input);
+            computer.setRegisterA(initialRegisterA);
+            while (!computer.isHalted()) {
+                computer.run();
+            }
+            actualOutput = computer.output;
+        }
+        return initialRegisterA;
     }
 
     private static class Computer {
@@ -38,11 +73,17 @@ public class Day17 {
         int[] memory;
         List<Integer> output;
 
-        public Computer(int registerA, int registerB, int registerC, int[] memory) {
-            this.registerA = registerA;
-            this.registerB = registerB;
-            this.registerC = registerC;
-            this.memory = memory;
+        public Computer(String input) {
+            String[] inputLines = input.split("\n");
+            this.registerA = Integer.parseInt(inputLines[0].split(": ")[1]);
+            this.registerB = Integer.parseInt(inputLines[1].split(": ")[1]);
+            this.registerC = Integer.parseInt(inputLines[2].split(": ")[1]);
+            var program = Arrays.stream(inputLines[4].split(": ")[1].split(",")).map(Integer::parseInt).toList();
+            this.memory = new int[program.size()];
+            for (int i = 0; i < program.size(); i++) {
+                memory[i] = program.get(i);
+            }
+            output = new ArrayList<>();
         }
 
         public void run() {
@@ -53,6 +94,10 @@ public class Day17 {
 
         public boolean isHalted() {
             return instructionPointer >= memory.length;
+        }
+
+        public void setRegisterA(int registerA) {
+            this.registerA = registerA;
         }
 
         private Instruction parseInstruction(int opcode, int operand) {
