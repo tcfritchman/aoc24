@@ -4,20 +4,20 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Vertex<V> {
-    private final Set<Edge<V>> edges;
-    private final V data;
+public class Vertex<K> {
+    private final Set<Edge<K>> edges;
+    private final K data;
 
-    public Vertex(V data) {
+    public Vertex(K data) {
         this.data = data;
         this.edges = new HashSet<>();
     }
 
-    public Set<Vertex<V>> getNeighbors() {
+    public Set<Vertex<K>> getNeighbors() {
         return edges.stream()
                 .map(edge -> {
-                    Pair<Vertex<V>> vertexPair = edge.getVertexPair();
-                    if (vertexPair.left() == this) {
+                    Pair<Vertex<K>> vertexPair = edge.getVertexPair();
+                    if (vertexPair.left().equals(this)) {
                         return vertexPair.right();
                     } else {
                         return vertexPair.left();
@@ -26,15 +26,15 @@ public class Vertex<V> {
                 .collect(Collectors.toSet());
     }
 
-    public V getData() {
+    public K getData() {
         return data;
     }
 
-    public boolean isAdjacent(Vertex<V> other) {
+    public boolean isAdjacent(Vertex<K> other) {
         return getNeighbors().contains(other);
     }
 
-    protected void addEdge(Edge<V> edge) {
+    protected void addEdge(Edge<K> edge) {
         edges.add(edge);
     }
 }
