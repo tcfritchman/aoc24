@@ -1,29 +1,43 @@
 package com.tcfritchman.common;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Graph<K> {
+public class Graph<K, V> {
 
-    private final Map<K,Vertex<K>> vertices;
+    private final Map<K,Vertex<V>> vertices;
 
     public Graph() {
         vertices = new HashMap<>();
     }
 
-    public Vertex<K> addVertex(K data) {
-        Vertex<K> vertex = new Vertex<>(data);
-        vertices.put(data, vertex);
+    public Vertex<V> addVertex(K key, V data) {
+        Vertex<V> vertex = new Vertex<>(data);
+        vertices.put(key, vertex);
         return vertex;
     }
 
-    public boolean containsKey(K data) {
-        return vertices.containsKey(data);
+    public Vertex<V> getVertex(K key) {
+        return vertices.get(key);
     }
 
-    public void addEdge(Vertex<K> v1, Vertex<K> v2, int weight) {
-        Edge<K> edge = new Edge<>(v1, v2, weight);
+    public boolean containsKey(K key) {
+        return vertices.containsKey(key);
+    }
+
+    public Collection<Vertex<V>> vertices() {
+        return vertices.values();
+    }
+
+    public void addEdge(Vertex<V> v1, Vertex<V> v2, int weight) {
+        Edge<V> edge = new Edge<>(v1, v2, weight);
         v1.addEdge(edge);
         v2.addEdge(edge);
+    }
+
+    public void addDirectedEdge(Vertex<V> from, Vertex<V> to) {
+        Edge<V> edge = new Edge<>(from, to, 0);
+        from.addEdge(edge);
     }
 }
